@@ -46,6 +46,10 @@ header.band .wrap { padding-block: 14px; display: grid; gap: 10px; }
 .brand { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .brand h1 { font-family: var(--font-display); font-size: 1.4rem; margin: 0; letter-spacing: -0.01em; }
 .brand span { font-size: 0.82rem; opacity: 0.8; }
+.titlerow { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.suggest { flex: 0 0 auto; color: var(--band-ink); border: 1.5px solid color-mix(in srgb, var(--band-ink) 55%, transparent); border-radius: 999px; padding: 5px 12px; font-size: 0.85rem; font-weight: 700; text-decoration: none; white-space: nowrap; }
+@media (max-width: 440px) { .suggest .long { display: none; } .brand h1 { font-size: 1.2rem; } }
+.suggest:hover { background: color-mix(in srgb, var(--band-ink) 15%, transparent); }
 #q { width: 100%; font-size: 1.05rem; padding: 12px 14px; border-radius: 10px; border: 2px solid transparent; background: var(--surface); color: var(--ink); }
 #q:focus { outline: none; border-color: var(--accent); }
 
@@ -114,7 +118,7 @@ footer { padding-block: 8px 24px; color: var(--muted); font-size: 0.85rem; }
 <header class="band">
   <div class="wrap">
     <div class="brand">
-      <h1>NSON Resource Directory</h1>
+      <div class="titlerow" style="width:100%"><h1>NSON Resource Directory</h1><a class="suggest" id="suggest" href="#" target="_blank" rel="noopener" hidden>+ Suggest<span class="long"> a resource</span></a></div>
       <span>Nurses Serving Our Neighbors · Charlotte, NC</span>
     </div>
     <input id="q" type="search" placeholder="What does the patient need? e.g. mammogram, therapy, food, lawyer" autocomplete="off" aria-label="Search resources">
@@ -324,7 +328,7 @@ function render() {
   const need = state.items.filter(it => it.status !== "Active").length;
   $("status").textContent = `Showing ${list.length} of ${state.items.length} resources` + (need ? ` · ${need} not yet verified by phone` : "") + (state.fromFallback ? " · showing a saved copy" : "");
   $("list").innerHTML = list.length ? list.map(slip).join("")
-    : `<div class="empty">Nothing matches. Try a broader word, clear a filter, <a href="https://nccare360.org/get-help/" target="_blank" rel="noopener">search NCCARE360</a>, or call 2-1-1.</div>`;
+    : `<div class="empty">Nothing matches. Try a broader word, clear a filter, <a href="https://nccare360.org/get-help/" target="_blank" rel="noopener">search NCCARE360</a>, or call 2-1-1.${CONFIG.FORM_URL ? ` Know a resource that should be here? <a href="${esc(safeUrl(CONFIG.FORM_URL))}" target="_blank" rel="noopener">Suggest it</a>.` : ""}</div>`;
   renderTray();
 }
 
@@ -403,6 +407,8 @@ $("clearBtn").addEventListener("click", () => { state.picked.clear(); $("preview
     if (state.items.some(it => it.cats.some(c => catGroup(c) === "Other"))) state.groups.push("Other");
     buildHay();
     render();
+    const form = CONFIG.FORM_URL && safeUrl(CONFIG.FORM_URL);
+    if (form) { $("suggest").href = form; $("suggest").hidden = false; }
     $("footer").innerHTML = (CONFIG.FORM_URL && safeUrl(CONFIG.FORM_URL) ? `Know a resource that should be here? <a href="${esc(safeUrl(CONFIG.FORM_URL))}" target="_blank" rel="noopener">Suggest a resource</a>. ` : "") +
       "Information comes from public sources and volunteers. Call ahead to confirm details.";
   } catch (e) {
