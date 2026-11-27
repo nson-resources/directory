@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NSON Resource Directory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&display=swap">
+<style>
+/* Layout: referral desk. Sticky search band, quick lines, group tabs then category chips, a column of referral slips, and a message tray at the bottom. */
+:root {
+  --bg: #f3f6f5; --surface: #ffffff; --ink: #17302c; --muted: #56706b; --line: #d5e0dd;
+  --accent: #0f6b5c; --accent-ink: #ffffff; --accent-soft: #dcefe9;
+  --warn: #8a5a00; --warn-soft: #fbefd3; --ok: #1d6b2f; --ok-soft: #dff1e2;
+  --band: #0f3d36; --band-ink: #eaf5f1;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1716; --surface: #172220; --ink: #e3eeeb; --muted: #9db3ad; --line: #2b3b38;
+    --accent: #5cc3ac; --accent-ink: #08201b; --accent-soft: #1d3a34;
+    --warn: #f0c56b; --warn-soft: #3a2e14; --ok: #8fd69c; --ok-soft: #1b3321;
+    --band: #0a2621; --band-ink: #d8efe8; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1716; --surface: #172220; --ink: #e3eeeb; --muted: #9db3ad; --line: #2b3b38;
+  --accent: #5cc3ac; --accent-ink: #08201b; --accent-soft: #1d3a34;
+  --warn: #f0c56b; --warn-soft: #3a2e14; --ok: #8fd69c; --ok-soft: #1b3321;
+  --band: #0a2621; --band-ink: #d8efe8; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.5; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--band); }
+.wrap { max-width: 880px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+a { color: var(--accent); }
+button { font: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+header.band { background: var(--band); color: var(--band-ink); position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+header.band .wrap { padding-block: 14px; display: grid; gap: 10px; }
+.brand { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.brand h1 { font-family: var(--font-display); font-size: 1.4rem; margin: 0; letter-spacing: -0.01em; }
+.brand span { font-size: 0.82rem; opacity: 0.8; }
+#q { width: 100%; font-size: 1.05rem; padding: 12px 14px; border-radius: 10px; border: 2px solid transparent; background: var(--surface); color: var(--ink); }
+#q:focus { outline: none; border-color: var(--accent); }
+
+.quick { display: flex; gap: 8px; overflow-x: auto; padding-block: 14px 4px; }
+.q { flex: 0 0 auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; min-width: 148px; color: var(--ink); text-decoration: none; }
+.q b { display: block; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+.q .num { font-family: var(--font-display); font-size: 1.08rem; font-variant-numeric: tabular-nums; }
+.q small { display: block; color: var(--muted); font-size: 0.8rem; }
+.q.link { border-color: var(--accent); background: var(--accent-soft); }
+.q.link .num { color: var(--accent); }
+
+.filters { display: grid; gap: 10px; padding-block: 12px; }
+.groups, .chips, .toggles { display: flex; flex-wrap: wrap; gap: 6px; }
+.grp { padding: 8px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; font-weight: 700; font-size: 0.92rem; }
+.grp[aria-pressed="true"] { background: var(--band); color: var(--band-ink); border-color: var(--band); }
+.chip { font-size: 0.88rem; padding: 5px 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.ct { opacity: 0.7; font-variant-numeric: tabular-nums; margin-left: 4px; font-weight: 400; }
+.toggle { font-size: 0.88rem; padding: 5px 12px; border-radius: 8px; border: 1px dashed var(--line); background: transparent; color: var(--ink); cursor: pointer; }
+.toggle[aria-pressed="true"] { border-style: solid; border-color: var(--accent); background: var(--accent-soft); font-weight: 700; }
+.status { color: var(--muted); font-size: 0.9rem; }
+
+.list { display: grid; gap: 12px; padding-block: 4px 120px; }
+.slip { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px; display: grid; gap: 10px; min-width: 0; }
+.slip.picked { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.slip-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.org { font-size: 0.82rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.slip h2 { font-family: var(--font-display); font-size: 1.15rem; margin: 0; text-wrap: balance; }
+.tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.tag { font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px; }
+.tag.flag { color: var(--accent); border-color: var(--accent); }
+.pill { font-size: 0.78rem; font-weight: 700; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.pill.need { background: var(--warn-soft); color: var(--warn); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); }
+.offers { margin: 0; }
+dl.facts { display: grid; grid-template-columns: max-content 1fr; gap: 4px 12px; margin: 0; font-size: 0.95rem; }
+dl.facts dt { color: var(--muted); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em; padding-top: 2px; }
+dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) { dl.facts { grid-template-columns: 1fr; gap: 0; } dl.facts dd { margin-bottom: 6px; } }
+.phone { font-variant-numeric: tabular-nums; font-weight: 700; user-select: all; }
+.note { font-size: 0.9rem; background: var(--accent-soft); border-radius: 8px; padding: 8px 10px; }
+.slip-foot { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.82rem; color: var(--muted); }
+.btn { border: 0; border-radius: 10px; padding: 9px 14px; cursor: pointer; background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+.btn.ghost { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.btn.small { padding: 5px 10px; font-size: 0.85rem; }
+.pick[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.empty { text-align: center; padding: 36px 16px; color: var(--muted); border: 1px dashed var(--line); border-radius: 12px; }
+
+.tray { position: fixed; left: 0; right: 0; bottom: 0; z-index: 8; background: var(--band); color: var(--band-ink); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.tray .wrap { padding-block: 12px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; justify-content: space-between; }
+.tray .count { font-weight: 700; }
+.tray .acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.lang { display: inline-flex; border: 1px solid color-mix(in srgb, var(--band-ink) 40%, transparent); border-radius: 8px; overflow: hidden; }
+.lang button { background: transparent; color: var(--band-ink); border: 0; padding: 6px 10px; cursor: pointer; font-size: 0.88rem; }
+.lang button[aria-pressed="true"] { background: var(--band-ink); color: var(--band); font-weight: 700; }
+.tray .btn.ghost { color: var(--band-ink); border-color: color-mix(in srgb, var(--band-ink) 50%, transparent); }
+.tray .btn:not(.ghost) { background: var(--band-ink); color: var(--band); }
+.preview { width: 100%; }
+.preview textarea { width: 100%; min-height: 150px; font: inherit; font-size: 0.9rem; border-radius: 8px; border: 0; padding: 10px; background: var(--surface); color: var(--ink); }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(150px + env(safe-area-inset-bottom, 0px)); max-width: calc(100% - 32px); text-align: center; background: var(--ink); color: var(--bg); padding: 10px 16px; border-radius: 10px; z-index: 30; font-weight: 700; }
+footer { padding-block: 8px 24px; color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<header class="band">
+  <div class="wrap">
+    <div class="brand">
+      <h1>NSON Resource Directory</h1>
+      <span>Nurses Serving Our Neighbors · Charlotte, NC</span>
+    </div>
+    <input id="q" type="search" placeholder="What does the patient need? e.g. mammogram, therapy, food, lawyer" autocomplete="off" aria-label="Search resources">
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="quick" aria-label="Lines for any need">
+    <a class="q link" href="https://nccare360.org/get-help/" target="_blank" rel="noopener"><b>Not on this list?</b><span class="num">Search NCCARE360 ↗</span><small>Statewide directory, no login</small></a>
+    <div class="q"><b>Any need, 24/7</b><span class="num">2-1-1</span><small>NC 211 · 1-888-892-1162</small></div>
+    <div class="q"><b>County services</b><span class="num">704-432-1111</span><small>Mecklenburg Just1Call</small></div>
+    <div class="q"><b>Crisis, 24/7</b><span class="num">988</span><small>Call or text</small></div>
+    <div class="q"><b>Emergency</b><span class="num">911</span><small>Danger or medical emergency</small></div>
+  </section>
+
+  <section class="filters" aria-label="Filters">
+    <div class="groups" id="groups"></div>
+    <div class="chips" id="chips" hidden></div>
+    <div class="toggles">
+      <button class="toggle" type="button" data-f="free" aria-pressed="false">Free or sliding scale</button>
+      <button class="toggle" type="button" data-f="spanish" aria-pressed="false">Spanish spoken</button>
+      <button class="toggle" type="button" data-f="noref" aria-pressed="false">No referral needed</button>
+      <button class="toggle" type="button" data-f="immig" aria-pressed="false">Any immigration status</button>
+    </div>
+    <div class="status" id="status">Loading resources…</div>
+  </section>
+
+  <section class="list" id="list" aria-live="polite"></section>
+  <footer id="footer"></footer>
+</main>
+
+<div class="tray" id="tray" hidden>
+  <div class="wrap">
+    <span class="count" id="count"></span>
+    <div class="acts">
+      <div class="lang" role="group" aria-label="Message language">
+        <button type="button" data-lang="en" aria-pressed="true">English</button>
+        <button type="button" data-lang="es" aria-pressed="false">Español</button>
+      </div>
+      <button class="btn ghost small" type="button" id="previewBtn">Preview</button>
+      <button class="btn small" type="button" id="copyBtn">Copy message</button>
+      <button class="btn ghost small" type="button" id="clearBtn">Clear</button>
+    </div>
+    <div class="preview" id="preview" hidden><textarea id="msg" readonly aria-label="Message to send"></textarea></div>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* ===================== SETTINGS: edit these ===================== */
+const CONFIG = {
+  // Google Sheets > File > Share > Publish to web > pick the tab > "Comma-separated values (.csv)" > copy the link.
+  RESOURCES_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYQxejldodsAEHkOoBKeN0JEpZIz-llgPCF9eKa97aqDCSjcM9Xjz9zphofF62OA/pub?gid=703793856&single=true&output=csv",
+  CATEGORIES_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYQxejldodsAEHkOoBKeN0JEpZIz-llgPCF9eKa97aqDCSjcM9Xjz9zphofF62OA/pub?gid=480693328&single=true&output=csv",
+  // Link to the "Suggest a resource" Google Form. Leave empty to hide the link.
+  FORM_URL: "",
+  // Used only when the links above are empty or can't be reached.
+  FALLBACK_RESOURCES: "resources.csv",
+  FALLBACK_CATEGORIES: "categories.csv"
+};
+
+/* ===================== PAGE TEXT (translate here later) ===================== */
+const MSG = {
+  en: {
+    intro: "Resources from Nurses Serving Our Neighbors (NSON):",
+    phone: "Phone", address: "Address", website: "Website", start: "How to start", cost: "Cost",
+    outro: "If you need more help, call 2-1-1 (free, 24/7).",
+    access: { "Walk-in": "Walk in, no appointment needed", "Appointment": "Call to make an appointment", "Referral required": "Needs a referral", "Call or apply online": "Call or apply online" },
+    costs: { "Free": "Free", "Sliding scale": "Based on income", "Low cost": "Low cost", "Insurance accepted": "Accepts insurance", "Fees apply": "Fees apply" }
+  },
+  es: {
+    intro: "Recursos de Nurses Serving Our Neighbors (NSON):",
+    phone: "Teléfono", address: "Dirección", website: "Sitio web", start: "Cómo empezar", cost: "Costo",
+    outro: "Si necesita más ayuda, llame al 2-1-1 (gratis, 24 horas).",
+    access: { "Walk-in": "Puede llegar sin cita", "Appointment": "Llamar para hacer una cita", "Referral required": "Necesita una referencia", "Call or apply online": "Llamar o aplicar en línea" },
+    costs: { "Free": "Gratis", "Sliding scale": "Según sus ingresos", "Low cost": "Bajo costo", "Insurance accepted": "Acepta seguro médico", "Fees apply": "Con costo" }
+  }
+};
+
+/* ===================== code ===================== */
+const $ = id => document.getElementById(id);
+const state = { items: [], cats: [], groups: [], group: null, cat: null, q: "", free: false, spanish: false, noref: false, immig: false, picked: new Map(), lang: "en", fromFallback: false };
+
+function esc(s) { return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+function safeUrl(u) { if (!u) return ""; if (!/^https?:\/\//i.test(u)) u = "https://" + u; try { const x = new URL(u); return /^https?:$/.test(x.protocol) ? x.href : ""; } catch { return ""; } }
+function norm(s) { return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, ""); }
+
+function parseCSV(text) {
+  const rows = []; let row = [], f = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; }
+      else f += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(f); f = ""; }
+    else if (c === "\n" || c === "\r") { if (c === "\r" && text[i + 1] === "\n") i++; row.push(f); rows.push(row); row = []; f = ""; }
+    else f += c;
+  }
+  if (f !== "" || row.length) { row.push(f); rows.push(row); }
+  if (!rows.length) return [];
+  const head = rows[0].map(h => h.trim().toLowerCase());
+  return rows.slice(1).filter(r => r.some(v => v.trim() !== "")).map(r => Object.fromEntries(head.map((h, i) => [h, (r[i] || "").trim()])));
+}
+
+async function getCSV(url, fallback) {
+  if (url) {
+    try { const r = await fetch(url, { cache: "no-store" }); if (r.ok) return parseCSV(await r.text()); } catch (e) {}
+    state.fromFallback = true;
+  }
+  const r = await fetch(fallback, { cache: "no-store" });
+  if (!r.ok) throw new Error("no data");
+  return parseCSV(await r.text());
+}
+
+function toItem(r, i) {
+  const g = k => r[k] || "";
+  const it = {
+    id: "r" + i,
+    org: g("organization"), program: g("program"),
+    cats: [g("category 1"), g("category 2"), g("category 3")].filter(Boolean),
+    offers: g("what they offer"), qualifies: g("who qualifies"), docs: g("documents to bring"),
+    cost: g("cost"), access: g("how to access"), refer: g("who can refer"),
+    phone: g("phone"), address: g("address"), website: g("website"), hours: g("hours"),
+    languages: g("languages"), immig: g("serves regardless of immigration status"),
+    tips: g("volunteer tips"), source: g("source"), verified: g("last verified"), by: g("verified by"),
+    status: g("status") || "Needs review"
+  };
+  it.spanish = /spanish|español|espanol/i.test(it.languages);
+  return it;
+}
+
+function buildHay() {
+  const words = Object.fromEntries(state.cats.map(c => [c.category, c.words]));
+  state.items.forEach(it => {
+    it._h = norm([it.org, it.program, it.offers, it.qualifies, it.docs, it.refer, it.address, it.languages, it.tips, ...it.cats, ...it.cats.map(c => words[c] || "")].join(" "));
+  });
+}
+
+function catGroup(name) { const c = state.cats.find(c => c.category === name); return c ? c.group : "Other"; }
+
+function matches(it, ignoreCat) {
+  if (state.group && !it.cats.some(c => catGroup(c) === state.group)) return false;
+  if (!ignoreCat && state.cat && !it.cats.includes(state.cat)) return false;
+  if (state.free && !["Free", "Sliding scale"].includes(it.cost)) return false;
+  if (state.spanish && !it.spanish) return false;
+  if (state.noref && it.access === "Referral required") return false;
+  if (state.immig && it.immig !== "Yes") return false;
+  const terms = norm(state.q).split(/\s+/).filter(Boolean);
+  return terms.every(t => it._h.includes(t) || (t.length > 4 && it._h.includes(t.slice(0, -1))));
+}
+
+function renderNav() {
+  const counts = {};
+  state.items.forEach(it => new Set(it.cats.map(catGroup)).forEach(g => counts[g] = (counts[g] || 0) + 1));
+  const groups = state.groups.filter(g => counts[g]);
+  $("groups").innerHTML = `<button class="grp" type="button" data-g="" aria-pressed="${!state.group}">All<span class="ct">${state.items.length}</span></button>` +
+    groups.map(g => `<button class="grp" type="button" data-g="${esc(g)}" aria-pressed="${state.group === g}">${esc(g)}<span class="ct">${counts[g]}</span></button>`).join("");
+  const chips = $("chips");
+  if (!state.group) { chips.hidden = true; return; }
+  const cc = {};
+  state.items.forEach(it => it.cats.forEach(c => { if (catGroup(c) === state.group) cc[c] = (cc[c] || 0) + 1; }));
+  const names = state.cats.filter(c => c.group === state.group && cc[c.category]).map(c => c.category);
+  chips.hidden = false;
+  chips.innerHTML = `<button class="chip" type="button" data-c="" aria-pressed="${!state.cat}">All ${esc(state.group.toLowerCase())}</button>` +
+    names.map(n => `<button class="chip" type="button" data-c="${esc(n)}" aria-pressed="${state.cat === n}">${esc(n)}<span class="ct">${cc[n]}</span></button>`).join("");
+}
+
+function slip(it) {
+  const picked = state.picked.has(it.id);
+  const flags = [
+    ["Free", "Sliding scale"].includes(it.cost) ? it.cost : "",
+    it.spanish ? "Spanish" : "",
+    it.access === "Referral required" ? "Referral required" : "",
+    it.immig === "Yes" ? "Any immigration status" : ""
+  ].filter(Boolean);
+  const pill = it.status === "Active"
+    ? `<span class="pill ok">Verified${it.verified ? " " + esc(it.verified) : ""}</span>`
+    : `<span class="pill need">Needs verification</span>`;
+  const url = safeUrl(it.website);
+  const rows = [
+    it.qualifies && ["Who qualifies", esc(it.qualifies)],
+    it.docs && ["Bring", esc(it.docs)],
+    it.cost && it.cost !== "Unknown" && ["Cost", esc(it.cost)],
+    it.access && it.access !== "Unknown" && ["How to access", esc(it.access)],
+    it.refer && ["Who can refer", esc(it.refer)],
+    it.phone && ["Phone", `<span class="phone">${esc(it.phone)}</span> <button class="btn ghost small" type="button" data-copy="${esc(it.phone)}">Copy</button>`],
+    it.address && ["Address", esc(it.address)],
+    it.hours && ["Hours", esc(it.hours)],
+    it.languages && ["Languages", esc(it.languages)],
+    url && ["Website", `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>`]
+  ].filter(Boolean).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
+  return `<article class="slip${picked ? " picked" : ""}">
+    <div class="slip-head"><div>${it.org ? `<div class="org">${esc(it.org)}</div>` : ""}<h2>${esc(it.program || it.org)}</h2>
+      <div class="tags">${it.cats.map(c => `<span class="tag">${esc(c)}</span>`).join("")}${flags.map(f => `<span class="tag flag">${esc(f)}</span>`).join("")}</div></div>${pill}</div>
+    ${it.offers ? `<p class="offers">${esc(it.offers)}</p>` : ""}
+    ${rows ? `<dl class="facts">${rows}</dl>` : ""}
+    ${it.tips ? `<div class="note"><b>Tip:</b> ${esc(it.tips)}</div>` : ""}
+    <div class="slip-foot"><span>${it.source ? "Source: " + esc(it.source) : ""}</span>
+      <button class="btn ghost small pick" type="button" data-pick="${it.id}" aria-pressed="${picked}">${picked ? "✓ In message" : "+ Add to message"}</button></div>
+  </article>`;
+}
+
+function render() {
+  renderNav();
+  const list = state.items.filter(it => matches(it)).sort((a, b) => (a.org + a.program).localeCompare(b.org + b.program));
+  const need = state.items.filter(it => it.status !== "Active").length;
+  $("status").textContent = `Showing ${list.length} of ${state.items.length} resources` + (need ? ` · ${need} not yet verified by phone` : "") + (state.fromFallback ? " · showing a saved copy" : "");
+  $("list").innerHTML = list.length ? list.map(slip).join("")
+    : `<div class="empty">Nothing matches. Try a broader word, clear a filter, <a href="https://nccare360.org/get-help/" target="_blank" rel="noopener">search NCCARE360</a>, or call 2-1-1.</div>`;
+  renderTray();
+}
+
+function buildMessage() {
+  const t = MSG[state.lang];
+  const items = [...state.picked.values()];
+  const parts = items.map((it, i) => {
+    const lines = [`${i + 1}. ${it.org && it.program ? it.org + ": " + it.program : (it.program || it.org)}`];
+    if (it.phone) lines.push(`${t.phone}: ${it.phone}`);
+    if (it.address) lines.push(`${t.address}: ${it.address}`);
+    if (t.access[it.access]) lines.push(`${t.start}: ${t.access[it.access]}`);
+    if (t.costs[it.cost]) lines.push(`${t.cost}: ${t.costs[it.cost]}`);
+    const url = safeUrl(it.website); if (url) lines.push(`${t.website}: ${url}`);
+    return lines.join("\n");
+  });
+  return [t.intro, ...parts, t.outro].join("\n\n");
+}
+
+function renderTray() {
+  const n = state.picked.size;
+  $("tray").hidden = n === 0;
+  $("count").textContent = n === 1 ? "1 resource selected" : `${n} resources selected`;
+  if (!$("preview").hidden) $("msg").value = buildMessage();
+}
+
+function toast(m) { const t = $("toast"); t.textContent = m; t.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(() => t.hidden = true, 2400); }
+
+async function copyText(text, fallbackEl) {
+  try { await navigator.clipboard.writeText(text); return true; } catch (e) {}
+  try {
+    const ta = document.createElement("textarea"); ta.value = text; ta.setAttribute("readonly", ""); ta.style.position = "fixed"; ta.style.opacity = "0";
+    document.body.appendChild(ta); ta.select(); const ok = document.execCommand("copy"); ta.remove(); if (ok) return true;
+  } catch (e) {}
+  if (fallbackEl) { fallbackEl.focus(); fallbackEl.select(); }
+  return false;
+}
+
+// events
+$("q").addEventListener("input", e => { state.q = e.target.value; render(); });
+$("groups").addEventListener("click", e => { const b = e.target.closest(".grp"); if (!b) return; state.group = b.dataset.g || null; state.cat = null; render(); });
+$("chips").addEventListener("click", e => { const b = e.target.closest(".chip"); if (!b) return; state.cat = b.dataset.c || null; render(); });
+document.querySelectorAll(".toggle").forEach(t => t.addEventListener("click", () => { const f = t.dataset.f; state[f] = !state[f]; t.setAttribute("aria-pressed", state[f]); render(); }));
+$("list").addEventListener("click", async e => {
+  const c = e.target.closest("[data-copy]");
+  if (c) { toast(await copyText(c.dataset.copy) ? "Phone number copied" : "Select the number to copy it"); return; }
+  const p = e.target.closest("[data-pick]");
+  if (p) { const it = state.items.find(x => x.id === p.dataset.pick); if (state.picked.has(it.id)) state.picked.delete(it.id); else state.picked.set(it.id, it); render(); }
+});
+document.querySelectorAll(".lang button").forEach(b => b.addEventListener("click", () => {
+  state.lang = b.dataset.lang; document.querySelectorAll(".lang button").forEach(x => x.setAttribute("aria-pressed", x === b)); renderTray();
+}));
+$("previewBtn").addEventListener("click", () => { const p = $("preview"); p.hidden = !p.hidden; $("previewBtn").textContent = p.hidden ? "Preview" : "Hide preview"; renderTray(); });
+$("copyBtn").addEventListener("click", async () => {
+  const text = buildMessage();
+  if (await copyText(text)) { toast("Message copied. Paste it in a text, WhatsApp or email."); return; }
+  $("preview").hidden = false; $("previewBtn").textContent = "Hide preview"; $("msg").value = text;
+  await copyText(text, $("msg")) || toast("Select the text below and copy it");
+});
+$("clearBtn").addEventListener("click", () => { state.picked.clear(); $("preview").hidden = true; $("previewBtn").textContent = "Preview"; render(); });
+
+// load
+(async () => {
+  try {
+    const [res, cats] = await Promise.all([
+      getCSV(CONFIG.RESOURCES_CSV_URL, CONFIG.FALLBACK_RESOURCES),
+      getCSV(CONFIG.CATEGORIES_CSV_URL, CONFIG.FALLBACK_CATEGORIES)
+    ]);
+    state.cats = cats.map(c => ({ group: c["group"], category: c["category"], words: c["search words (english and spanish)"] || "" })).filter(c => c.category);
+    state.groups = [...new Set(state.cats.map(c => c.group))];
+    state.items = res.map(toItem).filter(it => (it.org || it.program) && it.status !== "Closed");
+    if (state.items.some(it => it.cats.some(c => catGroup(c) === "Other"))) state.groups.push("Other");
+    buildHay();
+    render();
+    $("footer").innerHTML = (CONFIG.FORM_URL && safeUrl(CONFIG.FORM_URL) ? `Know a resource that should be here? <a href="${esc(safeUrl(CONFIG.FORM_URL))}" target="_blank" rel="noopener">Suggest a resource</a>. ` : "") +
+      "Information comes from public sources and volunteers. Call ahead to confirm details.";
+  } catch (e) {
+    $("status").textContent = "The resource list couldn't be loaded. Check your connection and reload the page, or call 2-1-1.";
+  }
+})();
+</script>
+</body>
+</html>
