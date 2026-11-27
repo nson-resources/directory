@@ -167,10 +167,10 @@ footer { padding-block: 8px 24px; color: var(--muted); font-size: 0.85rem; }
 /* ===================== SETTINGS: edit these ===================== */
 const CONFIG = {
   // Google Sheets > File > Share > Publish to web > pick the tab > "Comma-separated values (.csv)" > copy the link.
-  RESOURCES_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYQxejldodsAEHkOoBKeN0JEpZIz-llgPCF9eKa97aqDCSjcM9Xjz9zphofF62OA/pub?gid=703793856&single=true&output=csv",
-  CATEGORIES_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTYQxejldodsAEHkOoBKeN0JEpZIz-llgPCF9eKa97aqDCSjcM9Xjz9zphofF62OA/pub?gid=480693328&single=true&output=csv",
+  RESOURCES_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0goVtzcEh_5QDZaK6UGilC8FqRcdH8TR6Qi-cGZiyqhB8LbVxvrOlcstfeb7snBeXtaSuTJ2dl0Un/pub?gid=703793856&single=true&output=csv",
+  CATEGORIES_CSV_URL: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ0goVtzcEh_5QDZaK6UGilC8FqRcdH8TR6Qi-cGZiyqhB8LbVxvrOlcstfeb7snBeXtaSuTJ2dl0Un/pub?gid=480693328&single=true&output=csv",
   // Link to the "Suggest a resource" Google Form. Leave empty to hide the link.
-  FORM_URL: "",
+  FORM_URL: "https://forms.gle/cm8SqxqjBfy4nLhS9",
   // Used only when the links above are empty or can't be reached.
   FALLBACK_RESOURCES: "resources.csv",
   FALLBACK_CATEGORIES: "categories.csv"
@@ -189,7 +189,7 @@ const MSG = {
     intro: "Recursos de Nurses Serving Our Neighbors (NSON):",
     phone: "Teléfono", address: "Dirección", website: "Sitio web", start: "Cómo empezar", cost: "Costo",
     outro: "Si necesita más ayuda, llame al 2-1-1 (gratis, 24 horas).",
-    access: { "Walk-in": "Puede llegar sin cita", "Appointment": "Llamar para hacer una cita", "Referral required": "Necesita una referencia", "Call or apply online": "Llamar o aplicar en línea" },
+    access: { "Walk-in": "Puede llegar sin cita", "Appointment": "Llamar para hacer una cita", "Referral required": "Necesita una referencia", "Call or apply online": "Llamar o hacer la solicitud en línea" },
     costs: { "Free": "Gratis", "Sliding scale": "Según sus ingresos", "Low cost": "Bajo costo", "Insurance accepted": "Acepta seguro médico", "Fees apply": "Con costo" }
   }
 };
@@ -308,7 +308,7 @@ function slip(it) {
     url && ["Website", `<a href="${esc(url)}" target="_blank" rel="noopener">${esc(url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, ""))}</a>`]
   ].filter(Boolean).map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("");
   return `<article class="slip${picked ? " picked" : ""}">
-    <div class="slip-head"><div>${it.org ? `<div class="org">${esc(it.org)}</div>` : ""}<h2>${esc(it.program || it.org)}</h2>
+    <div class="slip-head"><div>${it.org && it.program && !norm(it.org).includes(norm(it.program)) ? `<div class="org">${esc(it.org)}</div>` : ""}<h2>${esc(it.program && !norm(it.org).includes(norm(it.program)) ? it.program : it.org)}</h2>
       <div class="tags">${it.cats.map(c => `<span class="tag">${esc(c)}</span>`).join("")}${flags.map(f => `<span class="tag flag">${esc(f)}</span>`).join("")}</div></div>${pill}</div>
     ${it.offers ? `<p class="offers">${esc(it.offers)}</p>` : ""}
     ${rows ? `<dl class="facts">${rows}</dl>` : ""}
@@ -328,11 +328,16 @@ function render() {
   renderTray();
 }
 
+function displayName(it) {
+  if (!it.org || !it.program) return it.program || it.org;
+  return norm(it.org).includes(norm(it.program)) ? it.org : it.org + ": " + it.program;
+}
+
 function buildMessage() {
   const t = MSG[state.lang];
   const items = [...state.picked.values()];
   const parts = items.map((it, i) => {
-    const lines = [`${i + 1}. ${it.org && it.program ? it.org + ": " + it.program : (it.program || it.org)}`];
+    const lines = [`${i + 1}. ${displayName(it)}`];
     if (it.phone) lines.push(`${t.phone}: ${it.phone}`);
     if (it.address) lines.push(`${t.address}: ${it.address}`);
     if (t.access[it.access]) lines.push(`${t.start}: ${t.access[it.access]}`);
