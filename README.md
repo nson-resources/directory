@@ -1,0 +1,2 @@
+# directory
+NSON resource directory
