@@ -8,28 +8,29 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&display=swap">
 <style>
 /* Layout: referral desk. Sticky search band, quick lines, group tabs then category chips, a column of referral slips, and a message tray at the bottom. */
+/* NSON brand: purple hsl(284, 21%, 44%) = #7B5988, light hsl(294, 17%, 91%) = #EBE4EC */
 :root {
-  --bg: #f3f6f5; --surface: #ffffff; --ink: #17302c; --muted: #56706b; --line: #d5e0dd;
-  --accent: #0f6b5c; --accent-ink: #ffffff; --accent-soft: #dcefe9;
+  --bg: #f6f4f7; --surface: #ffffff; --ink: #2a2230; --muted: #6a5f70; --line: #e0d9e4;
+  --accent: #7b5988; --accent-ink: #ffffff; --accent-soft: #ebe4ec;
   --warn: #8a5a00; --warn-soft: #fbefd3; --ok: #1d6b2f; --ok-soft: #dff1e2;
-  --band: #0f3d36; --band-ink: #eaf5f1;
+  --band: #4a3553; --band-ink: #f4eef6;
   --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
   --font-body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1716; --surface: #172220; --ink: #e3eeeb; --muted: #9db3ad; --line: #2b3b38;
-    --accent: #5cc3ac; --accent-ink: #08201b; --accent-soft: #1d3a34;
+    --bg: #17131a; --surface: #211b25; --ink: #ece6ef; --muted: #b0a4b6; --line: #3a3140;
+    --accent: #c7a9d4; --accent-ink: #241a29; --accent-soft: #3a2d41;
     --warn: #f0c56b; --warn-soft: #3a2e14; --ok: #8fd69c; --ok-soft: #1b3321;
-    --band: #0a2621; --band-ink: #d8efe8; color-scheme: dark;
+    --band: #2e2235; --band-ink: #f1eaf4; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0f1716; --surface: #172220; --ink: #e3eeeb; --muted: #9db3ad; --line: #2b3b38;
-  --accent: #5cc3ac; --accent-ink: #08201b; --accent-soft: #1d3a34;
+  --bg: #17131a; --surface: #211b25; --ink: #ece6ef; --muted: #b0a4b6; --line: #3a3140;
+  --accent: #c7a9d4; --accent-ink: #241a29; --accent-soft: #3a2d41;
   --warn: #f0c56b; --warn-soft: #3a2e14; --ok: #8fd69c; --ok-soft: #1b3321;
-  --band: #0a2621; --band-ink: #d8efe8; color-scheme: dark;
+  --band: #2e2235; --band-ink: #f1eaf4; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html { padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
